@@ -31,21 +31,26 @@
 
 (defun json-pair (string val)
 	(cond ((json-string-contr string) 
-			(cond ((json-val-contr val) (list string val))
+			(cond ((json-val-contr val) 
+			(list 	(remove #\" (remove #\space string)) 
+					(remove #\" (remove #\Space val))))
 			NIL)) 
 	NIL)
 )
 
 (defun json-string-contr (string)
 	;;; cose ;;;
-	(string-trim " " string)
+	string
 )
 
 (defun json-val-contr (val)
 	;;; cose ;;;
-	(string-trim " " val)
+	val
 )
 	;;;; TESTIIIING
 ;(json-pair "{ \"sei\", \"uno\", \"scemo\"}")
 ;(json-pair "{aaaa:bbbb, cccc:dddd, eeee:ffff")
 (parse-json "{aaa:aaa, bbb:bbb}")
+(parse-json "{\"sei\":\"sette\", \"sss\" : \"due \"}")
+
+
