@@ -30,13 +30,29 @@
 
 (defun parse-string(l)
 			(cond ((null (position #\" l)) nil)
-				  (t (parse-char-atom(subseq l (position #\" l) (or(position #\" l :start (1+ (position #\" lista)))(length l) ))))
+				  (t (parse-chars-atom(subseq l (position #\" l) (or(position #\" l :start (1+ (position #\" lista)))(length l) ))))
 			)
 )
 		
 		
-(defun parse-char-atom(l)
-	l)
+(defun parse-chars-atom(l)
+	(parse-chars(l))
+)
+
+(defun parse-chars(l)
+	(cond ((null (position #\\ l))
+			( ;; non ci sono caratteri escape
+				parse-char(car l)
+				parse-chars(cdr l)
+			))
+		  ((null l) nil)
+		  (t (parse-quotes(subseq l (position #\\ l)))
+		  )
+	)
+)
+
+(defun parse-char(c)
+	(cond (c
 
 (defun parse-value(l)
 	l)
