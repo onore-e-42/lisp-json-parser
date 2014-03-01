@@ -22,7 +22,24 @@
 )
 	
 (defun parse-pair(l)
-			l)
+			(cond ((null (position #\: l)) nil)
+				  (t 	(parse-string (subseq l 0 (position #\: l)))
+						(parse-value (subseq l (1+ (position #\: l)))))
+			)
+)
+
+(defun parse-string(l)
+			(cond ((null (position #\" l)) nil)
+				  (t (parse-char-atom(subseq l (position #\" l) (or(position #\" l :start (1+ (position #\" lista)))(length l) ))))
+			)
+)
+		
+		
+(defun parse-char-atom(l)
+	l)
+
+(defun parse-value(l)
+	l)
 			
 
 (defparameter test "\"nome\":\"matteo\"")
@@ -32,4 +49,4 @@
 (defparameter test4 "{\"li,,bri\":[\"se,tt,e mondi\", \"1984\"]}")
 (defparameter test5 "{\"lib[ri\":[\"sette mondi\",4, \"1984\"]}")
 (defparameter test6 "{\"libr{i\":[\"sette mondi\", \"1984\"]}")
-
+(defparameter lista (map 'list #'identity test1))
