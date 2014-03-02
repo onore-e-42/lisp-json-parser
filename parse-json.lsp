@@ -29,6 +29,10 @@
 			)
 )
 
+;;json-pair - input: list - output: true or nil
+;;if list doesn't contain : that isn't a pair.
+;;otherwise launch json-string with a substring that should be contain
+;;only the string, and json-value ( : -> character)
 (defun json-pair(l)
 	(cond 	((null (position #\: l)) nil)	
 			((and
@@ -38,19 +42,52 @@
 				;fare cose
 				))))
 
+;;json-string - input: list - output: true or nil
+;;if list doesn't contain " that couldn't be a string.
+;;otherwise launch json-space (there's some character before first "?)
+;;and launch also json-chars from first " to the end of the list.
 (defun json-string(l)
 	(cond	((null (position #\" l)) nil)
-			((json-chars(subseq l (1+(position #\" l))))
+			((and
+				(not(json-space(subseq l 0 (position #\" l))))
+				(json-chars(subseq l 
+						(1+(position #\" l))
+						(position #\" l :start 
+							(1+(position #\" l))))))
 				(
-				;fare qualcosa
+					;fare qualcosa
 				)
 			)
 	)
 )
 
+;;json-space - inptu list - output: true or nil
+;;if list contain something else expect #\space, return t
+(defun json-space(l)
+	(cond ((null l) nil)
+		  (t (
+				(loop for i in l 
+						do (cond ((equal i #\space))
+								 (t (return t)))
+				)
+			 ))
+	)				
+)
+
+;;json-char - input:list - output: true or nil
+;;check there's an escape input inside the string
 (defun json-chars(l)
-	(cond 	((null (position #\" l)) nil)
-			((
+	(cond 
+		((null l) t)
+		((and 	(equal (car l) #\\ )
+				(equal (cdr l) (list)))
+			nil)
+		((and 	(equal (car l) #\\ )
+				(not (equal (cdr l) (list))))
+			(json-chars (cddr l)))
+		(t (json-chars(cdr l)))
+	)
+)
 			
 (defun json-value(l)
 	t)
@@ -107,3 +144,4 @@
 (defparameter test5 "{\"lib[ri\":[\"sette mondi\",4, \"1984\"]}")
 (defparameter test6 "{\"libr{i\":[\"sette mondi\", \"1984\"]}")
 (defparameter lista (map 'list #'identity test1))
+(defparameter test7 "{\"nome\" : \"Arthur\", \"cognome\" : \"Dent\", \"numero civico\" : {\"uno\" : 1, \"due\" : 2, \"tre\": [3, 4, 5232, 42, {\"una\":\"prova\"}], \"quattro\" : {\"nothing to see \\\\\\h\\\\\\\"ere\" : \"42\"}}, \"abi\\\"tan\\\"ti\" : [\"Lui\", \"\\\"lo zio\\\"\", \"il cugino\"]}")
