@@ -1,9 +1,12 @@
+;;parse-json -  input: string - output: list
+;;map the string
 (defun parse-json (string)
 		(string-trim " " string)
 		(parse-object(map 'list #'identity string))
 )				
 		
-				
+;;parse-object - input: list - output: list (without {})
+;;if first and last elementes are {} call parse-member
 (defun parse-object(l)			
 			(cond 	((null  l) nil)
 					((and (equal (first l) #\{)(equal (car (last l)) #\})) 
@@ -12,15 +15,48 @@
 			)
 )
 
+;;parse-member - input: list - output: list till element comma.
+;;if there's no comma, all the list is a pair, otherwise, the list is ;;splitted using comma as separator.
+;;check if json-pair is a pair
 (defun parse-member(l)
 			(cond 	((null (position #\, l)) (parse-pair l))
-					(t (append 	(parse-pair(subseq l 0 (position #\, l)))
-								(parse-member(subseq l (1+ (position #\, l))))
+					((json-pair(subseq l 0 (position #\, l)))
+						(append 	
+						(parse-pair(subseq l 0 (position #\, l)))
+						(parse-member(subseq l (1+ (position #\, l))))
 						)
 					)
 			)
 )
+
+(defun json-pair(l)
+	(cond 	((null (position #\: l)) nil)	
+			((and
+				(json-string(subseq l 0 (position #\: l)))
+				(json-value(subseq l (1+ (position #\: l)))))
+				(
+				;fare cose
+				))))
+
+(defun json-string(l)
+	(cond	((null (position #\" l)) nil)
+			((json-chars(subseq l (1+(position #\" l))))
+				(
+				;fare qualcosa
+				)
+			)
+	)
+)
+
+(defun json-chars(l)
+	(cond 	((null (position #\" l)) nil)
+			((
+			
+(defun json-value(l)
+	t)
 	
+
+			
 (defun parse-pair(l)
 			(cond ((null (position #\: l)) nil)
 				  (t 	(parse-string (subseq l 0 (position #\: l)))
@@ -30,29 +66,34 @@
 
 (defun parse-string(l)
 			(cond ((null (position #\" l)) nil)
-				  (t (parse-chars-atom(subseq l (position #\" l) (or(position #\" l :start (1+ (position #\" lista)))(length l) ))))
+				  (t (parse-chars-atom(subseq l (1+ (position #\" l)) (or(position #\" l :start (1+ (position #\" lista)))(length l) ))))
 			)
 )
 		
 		
 (defun parse-chars-atom(l)
-	(parse-chars(l))
+	(parse-chars l)
 )
 
 (defun parse-chars(l)
 	(cond ((null (position #\\ l))
-			( ;; non ci sono caratteri escape
-				parse-char(car l)
-				parse-chars(cdr l)
-			))
+			(parse-char(car l))
+			(parse-chars(cdr l))
+			)
 		  ((null l) nil)
-		  (t (parse-quotes(subseq l (position #\\ l)))
+		  (t (parse-quotes(car (subseq l (position #\\ l) (1+(position #\\ l)))))
 		  )
 	)
 )
 
 (defun parse-char(c)
-	(cond (c
+	(print c)
+	(cond ((and (atom c)(not (equal c #\"))) c)))
+		  
+(defun parse-quote(c)
+	(cond ((and (atom c)(equal c #\"))) c))
+		 
+	
 
 (defun parse-value(l)
 	l)
