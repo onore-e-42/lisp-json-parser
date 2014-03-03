@@ -1,3 +1,5 @@
+;;
+
 ;;parse-json -  input: string - output: list
 ;;map the string
 (defun parse-json (string)
@@ -8,9 +10,12 @@
 ;;parse-object - input: list - output: list (without {})
 ;;if first and last elementes are {} call parse-member
 (defun parse-object(l)			
-			(cond 	((null  l) nil)
+			(cond 	
+					((equal (first l) #\space) (parse-object (cdr l)))
+					((equal (last l) #\space) (parse-object (butlast l)))
+					((null  l) nil)
 					((json-object l) 
-						(parse-member(nthcdr 1 (butlast l)) 0)
+						(append (list 'json-object) (parse-member(nthcdr 1 (butlast l)) 0))
 					)
 			)
 )
@@ -19,6 +24,7 @@
 	(cond 	((and 	(equal (first l) #\{)
 					(equal (car (last l)) #\}))
 					(json-member (nthcdr 1 (butlast l)) 0))
+					
 			((equal (first l) #\space) (json-object (cdr l)))
 			((equal (last l) #\space) (json-object (butlast l)))
 	)
@@ -39,9 +45,11 @@
 ;;if there's no comma, all the list is a pair, otherwise, the list is ;;splitted using comma as separator.
 ;;check if json-pair is a pair
 (defun parse-member(l p)
-			(cond 	;;((null (position #\, l :start p)) (parse-pair l))
+			(cond 	((null(position #\, l :start p)) 
+								(parse-pair l 0)
+							)
 					((json-pair(subseq l 0 
-						(position #\, l :start p)))
+						(position #\, l :start p)) 0)
 							(append 	
 								(parse-pair(subseq l 0 
 									(position #\, l :start p)) 0)
@@ -168,7 +176,7 @@
 		  ((json-elements(subseq l
 							(1+(position #\[ l))
 							(position #\] l)) 0 0) 
-			;fare qualcosa
+			t
 			)
 	)
 )
@@ -206,52 +214,39 @@
 ;;parse-pair - input: lista and int - output: list
 ;;if there's no : in the 
 (defun parse-pair(l p)
-			(cond ((null (position #\: l :start p)) nil)
-				  ((and (json-string (subseq l 0 
-							(position #\: l :start p)))
+			(cond 	((null(position #\: l :start p)) 
+						nil)
+								
+					((and (json-string (subseq l 0 
+							(position #\: l :start p))0)
 						(json-value (subseq l (1+ 
 							(position #\: l :start p))))
 					)
-						(append 
+						(list (append (list 'json-pair)
 							(parse-string (subseq l 0 
 								(position #\: l :start p)))
 							(parse-value (subseq l (1+ 
-								(position #\: l :start p))))))
+								(position #\: l :start p)))))))
 				  (t
-						(parse-pair l (1+ (position #\, l :start p)))
+						(parse-pair l (1+ (position #\: l :start p)))
 				  )
 			)
 )
 
 
+  
+  
 (defun parse-string (l)
-	(cond ((json-string(l)) (parse-char-atom l))))
-; (defun parse-string(l)
-			; (cond ((null (position #\" l)) nil)
-				  ; (t (parse-chars-atom(subseq l 
-						; (1+ (position #\" l)) 
-							; (or
-								; (position #\" l :start 
-									; (1+ (position #\" lista)))
-										; (length l) ))))
-			; )
-; )
+	(cond ((json-string l 0) (list(concatenate 'string l)))
+	)
+)
+
 		
 		
 (defun parse-chars-atom(l)
 	(parse-chars l)
 )
 
-(defun parse-chars(l)
-	(cond ((null (position #\\ l))
-			(parse-char(car l))
-			(parse-chars(cdr l))
-			)
-		  ((null l) nil)
-		  (t (parse-quotes(car (subseq l (position #\\ l) (1+(position #\\ l)))))
-		  )
-	)
-)
 
 (defun parse-char(c)
 	(print c)
@@ -263,17 +258,8 @@
 	
 
 (defun parse-value(l)
-	l)
+	(cond ((json-value l) (list (concatenate 'string l))))
+)
 			
 
-(defparameter test "\"nome\":\"matteo\"")
-(defparameter test1 "{\"cognome\":\"brighi\", \"nome\":\"matteo\"}")
-(defparameter test2 "{\"nome\":\"brigh,i\", \"nome\":\"mat,teo\"}")
-(defparameter test3 "{\"libri\":[\"sette mondi\", \"1984\"]}")
-(defparameter test4 "{\"li,,bri\":[\"se,tt,e mondi\", \"1984\"]}")
-(defparameter test5 "{\"lib[ri\":[\"sette mondi\",4, \"1984\"]}")
-(defparameter test6 "{\"libr{i\":[\"sette mondi\", \"1984\"]}")
-(defparameter error1 "{\"urca\\\"\"aa:\"ciao\",,}")
-(defparameter lista (map 'list #'identity test1))
-(defparameter errore (map 'list #'identity error1))
-(defparameter test7 "{\"nome\" : \"Arthur\", \"cognome\" : \"Dent\", \"numero civico\" : {\"uno\" : 1, \"due\" : 2, \"tre\": [3, 4, 5232, 42, {\"una\":\"prova\"}], \"quattro\" : {\"nothing to see \\\\\\h\\\\\\\"ere\" : \"42\"}}, \"abi\\\"tan\\\"ti\" : [\"Lui\", \"\\\"lo zio\\\"\", \"il cugino\"]}")
+			 
